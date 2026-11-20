@@ -26,6 +26,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
+    "httpx2>=2.0",  # starlette TestClient backend — required by tests/test_api.py
 ]
 # R19: playwright-extra lags Playwright releases and may be missing from mirrors — the
 # in-repo init-script stealth fallback (browser/stealth_patches.py) covers its absence.
