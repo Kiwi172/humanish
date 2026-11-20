@@ -1,0 +1,106 @@
+{
+  "platform": "instagram",
+  "schema_version": 2,
+  "updated_at": "2026-09-11",
+  "notes": "Starting points — verify with `warmer check-selectors --account <id>` per account before relying on them (SPEC §7.2). Ordered candidate lists: first match wins; matched index is logged for drift detection.",
+
+  "base_urls": {
+    "reels": "https://www.instagram.com/reels/",
+    "home": "https://www.instagram.com/"
+  },
+
+  "feed_container": {
+    "candidates": ["main", "[role='feed']", "div[role='application']"]
+  },
+
+  "scroll_target": {
+    "candidates": ["main", "html"],
+    "note": "element that receives scroll/touch gestures"
+  },
+
+  "video_card": {
+    "candidates": [
+      "article[data-ig-root] [data-testid^='react-reel']",
+      "article",
+      "div[role='listitem']"
+    ]
+  },
+
+  "video_key_source": {
+    "url_pattern": "/reels/([A-Za-z0-9_-]+)",
+    "note": "extract reel shortcode from active video URL"
+  },
+
+  "like_button": {
+    "candidates": [
+      "button[data-testid='like']",
+      "[aria-label*='Like' i]",
+      "[data-icn-type='like']"
+    ],
+    "liked_state_indicator": {
+      "candidates": ["[data-testid='unlike']", "[aria-label*='Unlike' i]"],
+      "note": "detect already-liked to avoid unlike (R15)"
+    }
+  },
+
+  "save_button": {
+    "candidates": ["button[data-testid='save']", "[aria-label*='Save' i]"]
+  },
+
+  "comment_open": {
+    "candidates": ["[data-testid='comment']", "[aria-label*='Comment' i]"]
+  },
+
+  "comment_input": {
+    "candidates": [
+      "[contenteditable][role='textbox']",
+      "[placeholder*='Comment' i]",
+      "textarea"
+    ]
+  },
+
+  "comment_send": {
+    "candidates": [
+      "button[data-testid='comment_send_button']",
+      "[aria-label*='Post' i]",
+      "[aria-label*='Send' i]"
+    ]
+  },
+
+  "ad_indicators": {
+    "selectors": ["a[href*='/ad/']", "[data-icn-type='ads']", "[class*='sponsored' i]"],
+    "text_patterns": ["Sponsored", "^Ad$", "Promoted"]
+  },
+
+  "ad_close_button": {
+    "candidates": [
+      "[aria-label*='Close' i]",
+      "[data-testid^='story_ads_top_right']",
+      "svg[data-svg='close']"
+    ]
+  },
+
+  "login_indicator": {
+    "url_contains": ["/accounts/login", "/accounts/logged_out"],
+    "selectors": ["[data-testid='login-redirect-button']", "[aria-label*='Log In' i]"]
+  },
+
+  "logged_in_indicator": {
+    "selectors": ["[data-testid='side_nav_container']", "[aria-label*='Your profile' i]"]
+  },
+
+  "bot_signals": {
+    "captcha": {
+      "text_patterns": ["Enter your phone number", "unusual activity detected", "verify you are human"],
+      "selectors": []
+    },
+    "check_phone_email": {
+      "text_patterns": ["Check your phone number", "Confirm your identity", "Check your email"],
+      "selectors": []
+    },
+    "rate_limit": {
+      "text_patterns": ["slow down", "limit reached"],
+      "selectors": []
+    }
+  }
+}

@@ -1,0 +1,62 @@
+# Account Warmer — global tuning defaults (SPEC §10).
+# Per-account values in the DB override these; dashboard "Settings" can patch a subset live.
+
+defaults:
+  window:                      # daily active hours, HH:MM (account-local)
+    start: "08:00"
+    end: "23:00"
+  session_duration_s:          # full-session duration range (seconds)
+    min: 900                   # 15 min
+    max: 2700                  # 45 min
+  quick_check_probability: 0.15   # share of active days with only a short "quick check" session
+
+session:
+  quick_check_duration_s: 300     # ~5-min quick-check sessions (SPEC §6.4)
+  max_errors_before_abort: 5      # per-session error budget before abort (R20)
+  scroll_retry_on_fail: 1         # retry a failed scroll N times, then log + continue
+
+behavior:                       # ALL randomness lives here; adapters stay deterministic given a plan step
+  like_p: 0.15                  # fraction of viewed videos that get liked
+  comment_p: 0.03               # low by design — comments are the strongest new-account tell
+  save_p: 0.03
+  follow_p: 0.008
+  dwell_s:                      # watch-time distribution (skewed, never fixed constants)
+    mean: 12                    # base dwell seconds on a non-interacted video
+    sigma: 6                    # skew -> occasional long watches / short glances
+    min: 2
+    max: 75
+    interact_multiplier_range: [1.4, 2.2]   # videos we intend to interact with are watched longer
+    glance_probability: 0.08                # occasional very-short glance before scrolling on
+  idle_burst:                   # "put the phone down" pauses mid-session
+    probability_per_video: 0.06
+    range_s: [30, 300]
+  scroll:                       # incremental-scroll gesture params (mobile touch)
+    steps: 1                    # incremental scrolls per "next video" advance
+    step_height_range_px: [280, 640]
+    jitter_pct: 15              # random offset on tap position / scroll increments
+    over_scroll_probability: 0.03   # occasional over-scroll + bounce back
+    back_scroll_probability: 0.02   # occasional back-scroll to rewatch previous video
+  typing:                       # comment-typing realism
+    wpm_range: [90, 160]
+    mid_typing_pause_probability: 0.35
+
+caps:                           # hard daily defaults; per-account DB columns override (NULL = use these)
+  daily_default:
+    videos: 40
+    likes: 12
+    comments: 2
+    saves: 4
+    follows: 2
+
+ramp_profiles:                  # keyed by accounts.ramp_profile. New accounts start low, grow over weeks (R6).
+  default:
+    - { days_from: 0,  days_to: 7,    videos_per_session: 12, like_p: 0.10, comment_p: 0.00, sessions_per_day: 1 }
+    - { days_from: 8,  days_to: 14,   videos_per_session: 20, like_p: 0.15, comment_p: 0.02, sessions_per_day: 1 }
+    - { days_from: 15, days_to: 30,   videos_per_session: 30, like_p: 0.18, comment_p: 0.03, sessions_per_day: 1 }
+    - { days_from: 31, days_to: null, videos_per_session: 40, like_p: 0.20, comment_p: 0.05, sessions_per_day: 2 }
+
+warnings:
+  pause_after:                  # auto-flag account after this many bot-signal warnings within the window
+    count: 2
+    within_hours: 48
+  screenshots_on_warning: true

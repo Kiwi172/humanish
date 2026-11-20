@@ -1,0 +1,32 @@
+# TikTok comment pools (SPEC §2.10). Tagged sections + {placeholder} substitution.
+# Placeholders resolved at pick time by core/behavior (Step 3):
+#   {adjective} -> random adjective; {emoji} -> rare, single emoji.
+# Style guide: casual, short, TikTok register ("no cap", "fr fr") in moderation — a fresh
+# account commenting like a decade-old power user is its own tell. No hashtags by default.
+
+general:
+  - "the algorithm knew i needed this"
+  - "watched this 5 times already no shame"
+  - "this one's actually {adjective}"
+  - "pov: the fyp finally does something right"
+  - "how do i explain where i saw this to my friends"
+  - "the ending caught me off guard fr"
+  - "not a single person commenting on how good this is"
+  - "sending this to everyone immediately"
+  - "day one of pretending i got here early"
+  - "this edit is so clean it hurts"
+
+food:
+  - "my room smells like regret after watching this"
+  - "chef really said let them cook"
+  - "that {adjective} plating though"
+
+travel:
+  - "passport just got another reason to be useless"
+  - "saving this for when i'm not broke"
+  - "the way the light hits at the end is insane"
+
+fitness:
+  - "me doing this with zero form: {adjective}"
+  - "day one. send help"
+  - "this is why my couch hates me now"

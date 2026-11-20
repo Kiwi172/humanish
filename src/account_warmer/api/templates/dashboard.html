@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Account Warmer{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-6">Dashboard</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+    <div class="card">
+        <h2 class="text-sm text-slate-400 mb-2">Active Sessions</h2>
+        {% if running_sessions %}
+            {% for s in running_sessions %}
+            <p class="text-lg font-mono">{{ s.account_id }} — {{ s.status }}</p>
+            {% endfor %}
+        {% else %}
+            <p class="text-slate-500">None running</p>
+        {% endif %}
+    </div>
+    <div class="card">
+        <h2 class="text-sm text-slate-400 mb-2">Accounts</h2>
+        <p class="text-lg">{{ accounts|length }} total</p>
+        <p class="text-sm text-green-400">{{ accounts|selectattr('status', 'equalto', 'active')|list|length }} active</p>
+    </div>
+    <div class="card">
+        <h2 class="text-sm text-slate-400 mb-2">Browser mode (SPEC §6.1)</h2>
+        <p class="text-lg">
+            channel: <span class="font-mono">{{ browser.channel }}</span>
+            {% if browser.channel_fallback %}<span class="badge bg-yellow-900 text-yellow-300">fallback</span>{% endif %}
+        </p>
+        <p class="text-sm {% if browser.headless %}text-yellow-400{% else %}text-green-400{% endif %}">
+            {{ 'HEADLESS — easier to detect' if browser.headless else 'headed (visible window)' }}
+        </p>
+    </div>
+</div>
+
+{% if hints %}
+<h2 class="text-lg font-semibold mb-3">Operator hints</h2>
+<div class="card mb-8 space-y-2">
+    {% for h in hints %}
+    <p class="text-sm">
+        <span class="badge {% if h.severity == 'error' %}bg-red-900 text-red-300{% elif h.severity == 'warning' %}bg-yellow-900 text-yellow-300{% else %}bg-slate-700 text-slate-300{% endif %}">{{ h.severity }}</span>
+        <span class="ml-2">{{ h.message }}</span>
+    </p>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+    <div class="card">
+        <h2 class="text-sm text-slate-400 mb-2">Recent Warnings (24h)</h2>
+        {% if recent_warnings %}
+            {% for e in recent_warnings[:3] %}
+            <p class="text-xs text-yellow-400 truncate">{{ e.created_at }} — {{ e.message[:60] }}</p>
+            {% endfor %}
+        {% else %}
+            <p class="text-slate-500">No warnings</p>
+        {% endif %}
+    </div>
+</div>
+
+<h2 class="text-lg font-semibold mb-3">Accounts Overview</h2>
+<div class="overflow-x-auto">
+<table class="w-full text-sm">
+    <thead>
+        <tr class="border-b border-slate-700 text-left text-slate-400">
+            <th class="py-2 pr-4">#</th>
+            <th class="pr-4">Platform</th>
+            <th class="pr-4">Handle</th>
+            <th class="pr-4">Status</th>
+            <th class="pr-4">Last Session</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for a in accounts %}
+        <tr class="border-b border-slate-800 hover:bg-slate-800/50">
+            <td class="py-2 pr-4 font-mono">{{ a.id }}</td>
+            <td class="pr-4">{{ a.platform }}</td>
+            <td class="pr-4"><a href="/account/{{ a.id }}" class="text-blue-400 hover:underline">@{{ a.handle }}</a></td>
+            <td class="pr-4"><span class="badge badge-{{ a.status }}">{{ a.status }}</span></td>
+            <td class="pr-4 text-slate-500">{{ a.last_session_at or '—' }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<script>
+// Light polling: refresh dashboard every 30s
+setTimeout(() => location.reload(), 30000);
+</script>
+{% endblock %}

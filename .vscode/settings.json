@@ -1,0 +1,5 @@
+{
+    "lmstudioCode.minContextLength": 262144,
+    "lmstudioCode.defaultThinkingEffort": "low",
+    "lmstudioCode.permissionMode": "default"
+}

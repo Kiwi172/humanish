@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}@{{ account.handle }} — Account Warmer{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">@{{ account.handle }} <span class="badge badge-{{ account.status }}">{{ account.status }}</span></h1>
+    <a href="/accounts-page" class="text-sm text-blue-400 hover:underline">← All Accounts</a>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <!-- Profile -->
+    <div class="card">
+        <h2 class="text-lg font-semibold mb-3">Profile</h2>
+        <dl class="text-sm space-y-2">
+            <dt class="text-slate-400">Platform</dt><dd>{{ account.platform }}</dd>
+            <dt class="text-slate-400">Label</dt><dd>{{ account.label or '—' }}</dd>
+            <dt class="text-slate-400">Timezone</dt><dd>{{ account.timezone_id }}</dd>
+            <dt class="text-slate-400">Locale</dt><dd>{{ account.locale }}</dd>
+            <dt class="text-slate-400">Device Profile</dt><dd>{{ account.device_profile }}</dd>
+            <dt class="text-slate-400">Window</dt><dd>{{ account.window_start or '—' }} – {{ account.window_end or '—' }}</dd>
+            <dt class="text-slate-400">Ramp Profile</dt><dd>{{ account.ramp_profile }}</dd>
+            <dt class="text-slate-400">Last Login</dt><dd>{{ account.last_login_at or '—' }}</dd>
+            <dt class="text-slate-400">Last Session</dt><dd>{{ account.last_session_at or '—' }}</dd>
+        </dl>
+    </div>
+
+    <!-- Today's Counters -->
+    <div class="card">
+        <h2 class="text-lg font-semibold mb-3">Today's Activity</h2>
+        <p class="text-sm text-slate-400 mb-4">Counters for the account's local calendar day.</p>
+        <!-- Filled via JS from /accounts/{{ account.id }} -->
+        <div id="counters" class="grid grid-cols-2 gap-3"></div>
+    </div>
+</div>
+
+<!-- Recent Sessions -->
+<h2 class="text-lg font-semibold mb-3">Recent Sessions</h2>
+<div class="overflow-x-auto mb-8">
+<table class="w-full text-sm">
+    <thead>
+        <tr class="border-b border-slate-700 text-left text-slate-400">
+            <th class="py-2 pr-4">#</th>
+            <th class="pr-4">Status</th>
+            <th class="pr-4">Stop Reason</th>
+            <th class="pr-4">Started</th>
+            <th class="pr-4">Duration (planned/actual)</th>
+            <th class="pr-4">Videos</th>
+            <th class="pr-4">Likes</th>
+            <th class="pr-4">Comments</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for s in sessions %}
+        <tr class="border-b border-slate-800">
+            <td class="py-2 pr-4 font-mono">{{ s.id }}</td>
+            <td class="pr-4"><span class="badge badge-{{ 'active' if s.status == 'running' else 'paused' }}">{{ s.status }}</span></td>
+            <td class="pr-4 text-slate-500">{{ s.stop_reason or '—' }}</td>
+            <td class="pr-4 text-slate-500">{{ s.started_at or '—' }}</td>
+            <td class="pr-4">{{ s.planned_duration_s }}s / {{ s.actual_duration_s or '—' }}s</td>
+            <td class="pr-4">{{ s.videos_watched }}</td>
+            <td class="pr-4">{{ s.likes_given }}</td>
+            <td class="pr-4">{{ s.comments_made }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="py-3 text-slate-500">No sessions yet</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<!-- Selector Drift Warnings -->
+<div id="drift-warnings" class="mb-6 hidden">
+    <h2 class="text-lg font-semibold mb-2 text-yellow-400">⚠️ Selector Drift</h2>
+    <div class="card border border-yellow-800 bg-yellow-950/30">
+        <ul id="drift-list" class="space-y-1 text-sm text-yellow-300"></ul>
+        <p class="text-xs text-slate-400 mt-2">Primary candidates are failing repeatedly — consider updating <code>selectors/{{ account.platform }}_selectors.json</code></p>
+    </div>
+</div>
+
+<!-- Recent Events -->
+<h2 class="text-lg font-semibold mb-3">Recent Events</h2>
+<div class="card max-h-96 overflow-y-auto">
+    <ul class="space-y-1 text-xs font-mono">
+        {% for e in events %}
+        <li class="flex gap-2">
+            <span class="text-slate-500 shrink-0">{{ e.created_at }}</span>
+            <span class="{% if e.level == 'warning' %}text-yellow-400{% elif e.level == 'error' %}text-red-400{% else %}text-slate-400{% endif %}">[{{ e.level }}]</span>
+            <span class="text-slate-500 shrink-0">{{ e.category }}</span>
+            <span>{{ e.message[:120] }}</span>
+        </li>
+        {% else %}
+        <li class="text-slate-500">No events logged</li>
+        {% endfor %}
+    </ul>
+</div>
+
+<script>
+// Load today's counters + drift warnings via API
+fetch('/accounts/{{ account.id }}')
+    .then(r => r.json())
+    .then(data => {
+        const el = document.getElementById('counters');
+        const items = [
+            ['Videos', data.counters_today.videos, data.caps.videos],
+            ['Likes', data.counters_today.likes, data.caps.likes],
+            ['Comments', data.counters_today.comments, data.caps.comments],
+            ['Saves', data.counters_today.saves, data.caps.saves],
+            ['Follows', data.counters_today.follows, data.caps.follows],
+        ];
+        el.innerHTML = items.map(([label, count, cap]) => {
+            const pct = cap > 0 ? Math.min(100, (count / cap) * 100) : 0;
+            return `<div>
+                <p class="text-slate-400">${label}</p>
+                <p class="font-mono text-lg">${count} / ${cap}</p>
+                <div class="w-full bg-slate-700 rounded-full h-1.5 mt-1">
+                    <div class="bg-blue-500 h-1.5 rounded-full" style="width:${pct}%"></div>
+                </div>
+            </div>`;
+        }).join('');
+
+        // Selector drift warnings (SPEC §7.2 rule 2)
+        const drift = data.selector_drift_warnings || [];
+        if (drift.length > 0) {
+            document.getElementById('drift-warnings').classList.remove('hidden');
+            document.getElementById('drift-list').innerHTML =
+                drift.map(w => `<li>• ${w}</li>`).join('');
+        }
+    });
+</script>
+{% endblock %}

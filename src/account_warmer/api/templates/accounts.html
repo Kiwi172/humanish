@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Accounts — Account Warmer{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">Accounts</h1>
+    <a href="/" class="text-sm text-blue-400 hover:underline">← Back to Dashboard</a>
+</div>
+
+<!-- Add Account Form -->
+<div class="card mb-6">
+    <h2 class="text-lg font-semibold mb-3">Add Account</h2>
+    <form id="add-account-form" class="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm">
+        <div>
+            <label class="block text-slate-400 mb-1">Platform</label>
+            <select name="platform" class="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1.5">
+                <option value="instagram">Instagram</option>
+                <option value="tiktok">TikTok</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-slate-400 mb-1">Handle</label>
+            <input name="handle" type="text" placeholder="username" class="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1.5">
+        </div>
+        <div>
+            <label class="block text-slate-400 mb-1">Label (optional)</label>
+            <input name="label" type="text" placeholder="Brand IG" class="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1.5">
+        </div>
+        <div class="flex items-end">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-1.5 rounded-md w-full">Add</button>
+        </div>
+    </form>
+    <p id="add-account-msg" class="mt-2 text-sm hidden"></p>
+</div>
+
+<!-- Accounts Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-sm">
+    <thead>
+        <tr class="border-b border-slate-700 text-left text-slate-400">
+            <th class="py-2 pr-4">#</th>
+            <th class="pr-4">Platform</th>
+            <th class="pr-4">Handle</th>
+            <th class="pr-4">Label</th>
+            <th class="pr-4">Status</th>
+            <th class="pr-4">Timezone</th>
+            <th class="pr-4">Window</th>
+            <th class="pr-4">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for a in accounts %}
+        <tr class="border-b border-slate-800 hover:bg-slate-800/50" id="acct-row-{{ a.id }}">
+            <td class="py-2 pr-4 font-mono">{{ a.id }}</td>
+            <td class="pr-4">{{ a.platform }}</td>
+            <td class="pr-4"><a href="/account/{{ a.id }}" class="text-blue-400 hover:underline">@{{ a.handle }}</a></td>
+            <td class="pr-4 text-slate-400">{{ a.label or '—' }}</td>
+            <td class="pr-4"><span class="badge badge-{{ a.status }}">{{ a.status }}</span></td>
+            <td class="pr-4 text-slate-500">{{ a.timezone_id }}</td>
+            <td class="pr-4 text-slate-500">{{ a.window_start or '—' }}–{{ a.window_end or '—' }}</td>
+            <td class="pr-4 space-x-2">
+                {% if a.status != 'paused' %}
+                <button onclick="setStatus({{ a.id }}, 'paused')" class="text-yellow-400 hover:underline text-xs">Pause</button>
+                {% else %}
+                <button onclick="setStatus({{ a.id }}, 'active')" class="text-green-400 hover:underline text-xs">Resume</button>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<script>
+async function addAccount(e) {
+    e.preventDefault();
+    const form = document.getElementById('add-account-form');
+    const msg = document.getElementById('add-account-msg');
+    const data = Object.fromEntries(new FormData(form));
+    try {
+        const res = await fetch('/accounts', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        if (res.ok) {
+            msg.textContent = 'Account added!';
+            msg.className = 'mt-2 text-sm text-green-400';
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            const err = await res.json();
+            msg.textContent = err.detail || 'Error adding account';
+            msg.className = 'mt-2 text-sm text-red-400';
+        }
+    } catch (err) {
+        msg.textContent = 'Network error: ' + err;
+        msg.className = 'mt-2 text-sm text-red-400';
+    }
+}
+
+async function setStatus(id, status) {
+    await fetch(`/accounts/${id}/status?status=${status}`, {method: 'PATCH'});
+    location.reload();
+}
+
+document.getElementById('add-account-form').addEventListener('submit', addAccount);
+</script>
+{% endblock %}

@@ -1,0 +1,102 @@
+{
+  "platform": "tiktok",
+  "schema_version": 2,
+  "updated_at": "2026-09-11",
+  "notes": "Starting points — verify with `warmer check-selectors --account <id>` per account before relying on them (SPEC §7.2). Same shape as the Instagram file.",
+
+  "base_urls": {
+    "fyp": "https://www.tiktok.com/"
+  },
+
+  "feed_container": {
+    "candidates": ["[data-e2e='feed-list']", "div[class*='List' i]", "main"]
+  },
+
+  "scroll_target": {
+    "candidates": ["html", "body"],
+    "note": "TikTok web scrolls the document; swipe gestures target this"
+  },
+
+  "video_card": {
+    "candidates": [
+      "[data-e2e='feed-item']",
+      "div[class*='ItemContainer' i]",
+      "[class*='slide' i]"
+    ]
+  },
+
+  "video_key_source": {
+    "url_pattern": "/(@[^/]+)/(?:video|photograph)/([A-Za-z0-9_-]+)",
+    "note": "extract aweme id (group 2) + author handle (group 1) from active video URL; fall back to first group if only one captured"
+  },
+
+  "like_button": {
+    "candidates": ["[data-e2e='like-button']", "button[aria-label*='Like' i]"],
+    "liked_state_indicator": {
+      "candidates": ["[data-e2e='like-button-active']", "[aria-label*='Unlike' i]", "[class*='like' i][class*='active' i]"],
+      "note": "detect already-liked to avoid unlike (R15)"
+    }
+  },
+
+  "save_button": {
+    "candidates": [
+      "[data-e2e='bookmark-button']",
+      "button[aria-label*='Bookmark' i]",
+      "button[aria-label*='Save' i]"
+    ],
+    "note": "TikTok 'save' is the bookmark action"
+  },
+
+  "comment_open": {
+    "candidates": ["[data-e2e='comment-button']", "[aria-label*='Comment' i]"]
+  },
+
+  "comment_input": {
+    "candidates": [
+      "[contenteditable][role='textbox']",
+      "[placeholder*='Comment' i]",
+      "textarea"
+    ]
+  },
+
+  "comment_send": {
+    "candidates": ["[data-e2e='send-button']", "[aria-label*='Post' i]", "[aria-label*='Send' i]"]
+  },
+
+  "ad_indicators": {
+    "selectors": ["div[data-e2e='ad-container']", "[class*='sponsored' i]", "a[href*='/ad/']"],
+    "text_patterns": ["Sponsored", "^Ad$", "Promoted"]
+  },
+
+  "ad_close_button": {
+    "candidates": [
+      "[aria-label*='Close' i]",
+      "[data-e2e='close-button']",
+      "svg[data-icon='close']"
+    ]
+  },
+
+  "login_indicator": {
+    "url_contains": ["/login", "/user/login"],
+    "selectors": ["div[data-e2e='login-modal']", "[aria-label*='Log in' i]"]
+  },
+
+  "logged_in_indicator": {
+    "selectors": ["[data-e2e='user-nav']", "nav a[href^='/@']", "[aria-label*='Profile' i]"]
+  },
+
+  "bot_signals": {
+    "captcha": {
+      "text_patterns": ["Complete the security check", "unusual activity detected", "verify you are human"],
+      "selectors": []
+    },
+    "check_phone_email": {
+      "text_patterns": ["Check your phone number", "Confirm your identity", "Verify your email"],
+      "selectors": []
+    },
+    "rate_limit": {
+      "text_patterns": ["Slow down", "limit reached"],
+      "selectors": []
+    }
+  }
+}

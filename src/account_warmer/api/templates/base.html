@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Account Warmer{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #0f172a; color: #e2e8f0; }
+        .card { @apply bg-slate-800 rounded-lg p-4 shadow; }
+        .badge { @apply inline-block px-2 py-0.5 text-xs font-medium rounded-full; }
+        .badge-active { @apply badge bg-green-900 text-green-300; }
+        .badge-paused { @apply badge bg-yellow-900 text-yellow-300; }
+        .badge-flagged { @apply badge bg-red-900 text-red-300; }
+        .badge-new { @apply badge bg-blue-900 text-blue-300; }
+        .badge-needs_login { @apply badge bg-orange-900 text-orange-300; }
+        .badge-error { @apply badge bg-red-900 text-red-300; }
+        .nav-link { @apply px-3 py-2 rounded-md text-sm font-medium transition-colors; }
+        .nav-active { @apply nav-link bg-slate-700 text-white; }
+        .nav-inactive { @apply nav-link text-slate-400 hover:text-white hover:bg-slate-800; }
+    </style>
+</head>
+<body class="min-h-screen">
+    <nav class="bg-slate-900 border-b border-slate-700 px-6 py-3 flex items-center gap-4">
+        <span class="text-lg font-bold text-white">🔥 Account Warmer</span>
+        <div class="flex gap-1 ml-6">
+            <a href="/" class="{% if request.url.path == '/' %}nav-active{% else %}nav-inactive{% endif %}">Dashboard</a>
+            <a href="/accounts-page" class="{% if 'account' in request.url.path and request.url.path != '/accounts' %}nav-active{% else %}nav-inactive{% endif %}">Accounts</a>
+            <a href="/sessions-page" class="{% if 'session' in request.url.path %}nav-active{% else %}nav-inactive{% endif %}">Sessions</a>
+            <a href="/logs-page" class="{% if 'log' in request.url.path %}nav-active{% else %}nav-inactive{% endif %}">Logs</a>
+            <a href="/settings-page" class="{% if 'setting' in request.url.path %}nav-active{% else %}nav-inactive{% endif %}">Settings</a>
+        </div>
+    </nav>
+    <main class="max-w-7xl mx-auto px-6 py-6">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

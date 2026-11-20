@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Settings — Account Warmer{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">Settings</h1>
+    <a href="/" class="text-sm text-blue-400 hover:underline">← Back to Dashboard</a>
+</div>
+
+<p class="text-sm text-slate-400 mb-4">
+    Live-editable overrides stored in the database. They patch the validated
+    <code>config/warmer.yaml</code> shape in memory, so a warming run picks them up on its
+    next session — no YAML edit or restart needed (SPEC §10).
+</p>
+
+<!-- Add / Edit Setting -->
+<div class="card mb-6">
+    <h2 class="text-lg font-semibold mb-3">Add or Update Setting</h2>
+    <form id="setting-form" class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+        <div class="md:col-span-3">
+            <label class="block text-slate-400 mb-1">Key</label>
+            <select name="key" id="key-select" class="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1.5 font-mono text-xs">
+                {% for key, value_type in schema.items() %}
+                <option value="{{ key }}">{{ key }} <span class="text-slate-500">({{ value_type }})</span></option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="md:col-span-3">
+            <label class="block text-slate-400 mb-1">Value</label>
+            <input name="value" type="text" placeholder="e.g. 15, 0.2, 06:30, true" class="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1.5 font-mono text-xs">
+        </div>
+        <div class="md:col-span-3 flex items-center gap-3">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-1.5 rounded-md text-sm">Save</button>
+            <span id="setting-msg" class="text-sm hidden"></span>
+        </div>
+    </form>
+</div>
+
+<!-- Current Settings Table -->
+<h2 class="text-lg font-semibold mb-3">Current Settings</h2>
+<div class="card overflow-x-auto">
+<table class="w-full text-sm" id="settings-table">
+    <thead>
+        <tr class="border-b border-slate-700 text-left text-slate-400">
+            <th class="py-2 pr-4">Key</th>
+            <th class="pr-4">Value</th>
+            <th class="pr-4"></th>
+        </tr>
+    </thead>
+    <tbody id="settings-body">
+        {% for key, value in settings.items() %}
+        <tr class="border-b border-slate-800" data-key="{{ key }}">
+            <td class="py-2 pr-4 font-mono text-xs">{{ key }}</td>
+            <td class="pr-4 font-mono text-xs text-slate-300 max-w-[400px] truncate" title="{{ value }}">{{ value }}</td>
+            <td class="pr-4">
+                <button onclick="deleteSetting('{{ key }}')" class="text-red-400 hover:underline text-xs">Delete</button>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3" class="py-4 text-slate-500">No overrides stored — YAML defaults are in effect</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<script>
+async function saveSetting(e) {
+    e.preventDefault();
+    const form = document.getElementById('setting-form');
+    const msg = document.getElementById('setting-msg');
+    const data = Object.fromEntries(new FormData(form));
+    if (!data.key || !data.value) {
+        msg.textContent = 'Both key and value are required';
+        msg.className = 'text-sm text-red-400';
+        return;
+    }
+    try {
+        const res = await fetch('/settings', {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        if (res.ok) {
+            msg.textContent = 'Saved!';
+            msg.className = 'text-sm text-green-400';
+            setTimeout(() => location.reload(), 800);
+        } else {
+            const err = await res.json();
+            msg.textContent = err.detail || 'Error saving';
+            msg.className = 'text-sm text-red-400';
+        }
+    } catch (err) {
+        msg.textContent = 'Network error: ' + err;
+        msg.className = 'text-sm text-red-400';
+    }
+}
+
+async function deleteSetting(key) {
+    if (!confirm(`Delete setting "${key}"?`)) return;
+    const res = await fetch(`/settings/${encodeURIComponent(key)}`, {method: 'DELETE'});
+    if (res.ok) location.reload();
+    else alert((await res.json()).detail || 'Failed to delete');
+}
+
+document.getElementById('setting-form').addEventListener('submit', saveSetting);
+</script>
+{% endblock %}

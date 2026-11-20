@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Logs — Account Warmer{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">Event Logs</h1>
+    <a href="/" class="text-sm text-blue-400 hover:underline">← Back to Dashboard</a>
+</div>
+
+<!-- Filters -->
+<div class="flex gap-3 mb-4 text-sm">
+    <select id="filter-level" onchange="applyFilters()" class="bg-slate-700 border border-slate-600 rounded px-2 py-1.5">
+        <option value="">All Levels</option>
+        <option value="debug">Debug</option>
+        <option value="info">Info</option>
+        <option value="warning" selected>Warning+</option>
+        <option value="error">Error</option>
+    </select>
+    <select id="filter-category" onchange="applyFilters()" class="bg-slate-700 border border-slate-600 rounded px-2 py-1.5">
+        <option value="">All Categories</option>
+        <option value="app">App</option>
+        <option value="login">Login</option>
+        <option value="bot_signal" selected>Bot Signal</option>
+        <option value="ad">Ad</option>
+        <option value="selector">Selector</option>
+        <option value="proxy">Proxy</option>
+        <option value="network">Network</option>
+        <option value="limit">Limit</option>
+    </select>
+    <span id="log-count" class="text-slate-500 self-center"></span>
+</div>
+
+<!-- Log Table -->
+<div class="card max-h-[70vh] overflow-y-auto">
+<table class="w-full text-xs font-mono">
+    <thead class="sticky top-0 bg-slate-800">
+        <tr class="text-left text-slate-400 border-b border-slate-700">
+            <th class="py-2 pr-3">Time</th>
+            <th class="pr-3">Level</th>
+            <th class="pr-3">Category</th>
+            <th class="pr-3">Account</th>
+            <th>Message</th>
+        </tr>
+    </thead>
+    <tbody id="log-body">
+        {% for e in events %}
+        <tr class="border-b border-slate-800/50" data-level="{{ e.level }}" data-category="{{ e.category }}">
+            <td class="py-1.5 pr-3 text-slate-500 whitespace-nowrap">{{ e.created_at }}</td>
+            <td class="pr-3">
+                <span class="{% if e.level == 'error' %}text-red-400{% elif e.level == 'warning' %}text-yellow-400{% else %}text-slate-400{% endif %}">{{ e.level }}</span>
+            </td>
+            <td class="pr-3 text-slate-500">{{ e.category }}</td>
+            <td class="pr-3">
+                {% if e.account_id and e.account_id in accounts %}@{{ accounts[e.account_id].handle }}{% elif e.account_id %}#{{ e.account_id }}{% else %}—{% endif %}
+            </td>
+            <td class="text-slate-300">{{ e.message }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="py-4 text-slate-500">No events logged</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<script>
+function applyFilters() {
+    const level = document.getElementById('filter-level').value;
+    const category = document.getElementById('filter-category').value;
+    const rows = document.querySelectorAll('#log-body tr[data-level]');
+    let visible = 0;
+    rows.forEach(row => {
+        const matchLevel = !level || row.dataset.level === level || (level === 'warning' && ['warning', 'error'].includes(row.dataset.level));
+        const matchCat = !category || row.dataset.category === category;
+        const show = matchLevel && matchCat;
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+    document.getElementById('log-count').textContent = `${visible} events`;
+}
+applyFilters();
+
+// Auto-refresh every 15s
+setTimeout(() => location.reload(), 15000);
+</script>
+{% endblock %}

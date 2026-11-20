@@ -1,0 +1,16 @@
+# TikTok-specific tuning (SPEC §10). Selector candidates live in selectors/tiktok_selectors.json.
+
+platform: tiktok
+
+feed_modes: [fyp]                # For You page is the only v1 mode
+feed_mode_weights: { fyp: 1.0 }
+
+# Extra ad text patterns appended to ad_indicators.text_patterns from the selector file (R12).
+extra_ad_text_patterns:
+  - "Sponsored"
+  - "^Ad$"
+  - "Promoted"
+
+scroll_gesture:                  # platform-specific overrides on top of warmer.yaml behavior.scroll
+  swipe_duration_ms_range: [160, 380]
+  hold_at_edge_ms_range: [50, 140]

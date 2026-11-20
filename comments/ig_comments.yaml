@@ -1,0 +1,37 @@
+# Instagram comment pools (SPEC §2.10). Tagged sections + {placeholder} substitution.
+# Placeholders are resolved at pick time by core/behavior (Step 3):
+#   {adjective} -> random adjective from the built-in list; {emoji} -> rare, single emoji.
+# Style guide: short, lowercase-leaning, NO hashtags (hashtags on a new account look bot-ish),
+# no perfect grammar. Keep this pool small — variety comes from timing, not volume.
+
+general:
+  - "love this"
+  - "okay this is actually {adjective}"
+  - "the vibe of this one is unreal"
+  - "needed to see this today honestly"
+  - "first time on my feed and i'm here for it"
+  - "how is this not more popular"
+  - "this deserves way more views tbh"
+  - "instant save, no notes"
+  - "the {adjective} energy of this post"
+  - "who else found this through the algorithm today"
+  - "proof that good content still works"
+  - "came for the sound stayed for the edit"
+  - "this is peak"
+  - "not me rewatching this three times in a row"
+
+food:
+  - "my stomach just growled at this"
+  - "recipe please, i beg"
+  - "the way that {adjective} looks on camera"
+  - "cooking this this weekend, no pressure to deliver"
+
+travel:
+  - "adding this to the list immediately"
+  - "which spot is this?? looks {adjective}"
+  - "my savings account just took a hit"
+
+fitness:
+  - "day three of trying that routine and here we are"
+  - "the form in this one is clean"
+  - "motivation i didn't know i needed today"

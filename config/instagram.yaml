@@ -1,0 +1,16 @@
+# Instagram-specific tuning (SPEC §10). Selector candidates live in selectors/instagram_selectors.json.
+
+platform: instagram
+
+feed_modes: [reels, home]        # modes a warming session may use; scheduler picks one per session
+feed_mode_weights: { reels: 0.7, home: 0.3 }
+
+# Extra ad text patterns appended to ad_indicators.text_patterns from the selector file (R12).
+extra_ad_text_patterns:
+  - "Sponsored"
+  - "^Ad$"
+  - "Promoted"
+
+scroll_gesture:                  # platform-specific overrides on top of warmer.yaml behavior.scroll
+  swipe_duration_ms_range: [180, 420]    # realistic finger-swipe duration
+  hold_at_edge_ms_range: [60, 160]       # finger rests at screen edge before releasing
